@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loaded Dice Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            perspective: 1200px;
+        }
+
+        .die {
+            width: 120px;
+            height: 120px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            border: none;
+            transition: transform 0.2s ease;
+            transform-style: preserve-3d;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .die::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .die::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 5px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .die-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .die > span:not(.die-label) {
+            position: relative;
+            z-index: 2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .die.rolling {
+            animation: roll 0.5s ease-out;
+        }
+
+        @keyframes roll {
+            0% {
+                transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+            }
+            25% {
+                transform: rotateX(360deg) rotateY(180deg) rotateZ(45deg) scale(1.02);
+            }
+            50% {
+                transform: rotateX(720deg) rotateY(360deg) rotateZ(90deg) scale(1.02);
+            }
+            75% {
+                transform: rotateX(1080deg) rotateY(540deg) rotateZ(180deg) scale(1.01);
+            }
+            100% {
+                transform: rotateX(1440deg) rotateY(720deg) rotateZ(360deg) scale(1);
+            }
+        }
+
+        .die-blue {
+            background: linear-gradient(145deg, #3498db 0%, #2980b9 50%, #1a5276 100%);
+        }
+
+        .die-red {
+            background: linear-gradient(145deg, #e74c3c 0%, #c0392b 50%, #78281f 100%);
+        }
+
+        .die-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .timer-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .timer-controls input {
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            width: 100px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #stopTimerBtn {
+            background: #e74c3c;
+            margin-left: 10px;
+        }
+
+        #stopTimerBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .timer-display {
+            display: none;
+            font-size: 72px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            margin: 30px 0;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            animation: timerPulse 1s infinite;
+        }
+
+        .timer-display.active {
+            display: block;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .timer-display.warning {
+            color: #e74c3c;
+            text-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+        }
+
+        /* face showcase */
+        .faces-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .face-set {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .blue-faces .face {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .red-faces .face {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .face {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .final-results {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .final-results.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .final-results h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .final-results-counters {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .final-results-counter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .final-results-counter-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .final-results-counter-value {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .final-results-probability {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+                margin-bottom: 18px;
+            }
+
+            .faces-container {
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .face-set {
+                grid-template-columns: repeat(3, 40px);
+                grid-gap: 8px;
+            }
+
+            .face {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .dice-container {
+                gap: 18px;
+            }
+
+            .die {
+                width: 90px;
+                height: 90px;
+                border-radius: 10px;
+                font-size: 44px;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px 18px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+
+            .timer-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .timer-controls input {
+                width: 120px;
+            }
+
+            .timer-display {
+                font-size: 48px;
+                letter-spacing: 6px;
+            }
+
+            .flip-digit {
+                width: 44px;
+                height: 64px;
+                font-size: 28px;
+            }
+
+            .final-results-counter-value {
+                font-size: 36px;
+            }
+        }
+
+        .info {
+            color: #666;
+            font-size: 16px;
+            margin-top: 20px;
+            min-height: 24px;
+        }
+
+        .info.highlight {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .die.hidden {
+            display: none;
+        }
+
+        .counters-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+
+        .counters {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .counter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .counter-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flip-clock {
+            display: flex;
+            gap: 8px;
+            perspective: 1000px;
+        }
+
+        .flip-digit {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(135deg, #333 50%, #1a1a1a 50%);
+            border: 3px solid #000;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff6600;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 8px 16px rgba(0, 0, 0, 0.3);
+            position: relative;
+            text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+        }
+
+        .flip-digit::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-50%);
+        }
+
+        .flip-digit.flipping {
+            animation: flipCard 0.6s ease-in-out;
+        }
+
+        @keyframes flipCard {
+            0% {
+                transform: rotateX(0deg);
+            }
+            50% {
+                transform: rotateX(90deg);
+            }
+            100% {
+                transform: rotateX(0deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Loaded Dice Game</h1>
+        
+        <div class="faces-container">
+            <div class="face-set blue-faces">
+                <div class="face">1</div>
+                <div class="face">2</div>
+                <div class="face">3</div>
+                <div class="face">4</div>
+                <div class="face">5</div>
+                <div class="face">6</div>
+            </div>
+            <div class="face-set red-faces">
+                <div class="face">1</div>
+                <div class="face">2</div>
+                <div class="face">3</div>
+                <div class="face">6</div>
+                <div class="face">6</div>
+                <div class="face">6</div>
+            </div>
+        </div>
+
+        <div class="dice-container">
+            <div class="die die-blue" id="blueDie">
+                <span class="die-label">Normal</span>
+                1
+            </div>
+            <div class="die die-red" id="redDie">
+                <span class="die-label">Loaded</span>
+                1
+            </div>
+        </div>
+
+        <button id="rollBtn">Roll Dice</button>
+        
+        <div class="info" id="info"></div>
+
+        <div class="counters-section">
+            <div class="counters">
+                <div class="counter">
+                    <div class="counter-label">Six Counter</div>
+                    <div class="flip-clock">
+                        <div class="flip-digit" id="sixes">0</div>
+                    </div>
+                </div>
+                <div class="counter">
+                    <div class="counter-label">Red Six Counter</div>
+                    <div class="flip-clock">
+                        <div class="flip-digit" id="redSixes">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div class="timer-controls">
+                <label for="minutesInput">Minutes:</label>
+                <input type="number" id="minutesInput" min="1" max="60" value="1" />
+                <button id="startTimerBtn">Start Timed Game</button>
+                <button id="stopTimerBtn" disabled>Stop Game</button>
+            </div>
+            <div class="timer-display" id="timerDisplay">00:00</div>
+            <div class="final-results" id="finalResults">
+                <h2>🎮 Game Over!</h2>
+                <div class="final-results-counters">
+                    <div class="final-results-counter">
+                        <div class="final-results-counter-label">Total Sixes</div>
+                        <div class="final-results-counter-value" id="finalSixes">0</div>
+                    </div>
+                    <div class="final-results-counter">
+                        <div class="final-results-counter-label">Red Sixes</div>
+                        <div class="final-results-counter-value" id="finalRedSixes">0</div>
+                    </div>
+                </div>
+                <div class="final-results-probability">
+                    <div class="final-results-counter-label">P(Red | Six)</div>
+                    <div class="final-results-counter-value" id="finalProbability">0%</div>
+                </div>
+                <button id="resetGameBtn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const blueDie = document.getElementById('blueDie');
+        const redDie = document.getElementById('redDie');
+        const rollBtn = document.getElementById('rollBtn');
+        const info = document.getElementById('info');
+        const sixesCounter = document.getElementById('sixes');
+        const redSixesCounter = document.getElementById('redSixes');
+        const startTimerBtn = document.getElementById('startTimerBtn');
+        const stopTimerBtn = document.getElementById('stopTimerBtn');
+        const minutesInput = document.getElementById('minutesInput');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const finalResults = document.getElementById('finalResults');
+        const resetGameBtn = document.getElementById('resetGameBtn');
+
+        // Normal die: 1-6
+        const normalDie = [1, 2, 3, 4, 5, 6];
+        
+        // Loaded red die: 1, 2, 3, 6, 6, 6
+        const specialDie = [1, 2, 3, 6, 6, 6]; // loaded die (alias kept)
+
+        let currentBlueValue = 1;
+        let currentRedValue = 1;
+        let sixCount = 0;
+        let redSixCount = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let isRolling = false;
+
+        function rollDice() {
+            if (isRolling) return;
+            
+            isRolling = true;
+            info.textContent = '';
+            
+            // Step 1: Show both dice
+            blueDie.classList.remove('hidden');
+            redDie.classList.remove('hidden');
+
+            // Step 2: After a brief moment, randomly select which die to roll
+            setTimeout(() => {
+                const diceToRoll = Math.random() < 0.5 ? 0 : 1;
+
+                if (diceToRoll === 0) {
+                    // Roll blue die
+                    rollBlueDie();
+                } else {
+                    // Roll red die
+                    rollRedDie();
+                }
+            }, 400);
+
+            setTimeout(() => {
+                isRolling = false;
+                if (!isTimerRunning) {
+                    rollBtn.disabled = false;
+                }
+            }, 1000);
+        }
+
+        function flipCounter(element) {
+            element.classList.remove('flipping');
+            // Trigger reflow to restart animation
+            void element.offsetWidth;
+            element.classList.add('flipping');
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimerGame() {
+            const minutes = parseInt(minutesInput.value);
+            if (isNaN(minutes) || minutes < 1) {
+                alert('Please enter a valid number of minutes');
+                return;
+            }
+
+            // Reset counters for new game
+            sixCount = 0;
+            redSixCount = 0;
+            sixesCounter.textContent = '0';
+            redSixesCounter.textContent = '0';
+            info.textContent = '';
+            finalResults.classList.remove('show');
+
+            let timeRemaining = minutes * 60;
+            isTimerRunning = true;
+            rollBtn.disabled = true;
+            startTimerBtn.disabled = true;
+            stopTimerBtn.disabled = false;
+            minutesInput.disabled = true;
+
+            timerDisplay.classList.add('active');
+            timerDisplay.classList.remove('warning');
+            timerDisplay.textContent = formatTime(timeRemaining);
+
+            // Auto-roll every 1000ms (to match the animation timing)
+            const autoRollInterval = setInterval(() => {
+                if (isTimerRunning && !isRolling) {
+                    rollDice();
+                }
+            }, 1000);
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                timerDisplay.textContent = formatTime(timeRemaining);
+
+                // Add warning effect when time is running out
+                if (timeRemaining <= 10) {
+                    timerDisplay.classList.add('warning');
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(autoRollInterval);
+                    isTimerRunning = false;
+                    timerDisplay.classList.remove('active');
+                    rollBtn.disabled = false;
+                    startTimerBtn.disabled = false;
+                    stopTimerBtn.disabled = true;
+                    minutesInput.disabled = false;
+
+                    // Show final results
+                    showFinalResults();
+                }
+            }, 1000);
+        }
+
+        function showFinalResults() {
+            document.getElementById('finalSixes').textContent = sixCount;
+            document.getElementById('finalRedSixes').textContent = redSixCount;
+            // compute conditional probability P(Red|Six)
+            let probText = '0%';
+            if (sixCount > 0) {
+                const prob = (redSixCount / sixCount) * 100;
+                probText = prob.toFixed(1) + '%';
+            }
+            document.getElementById('finalProbability').textContent = probText;
+            finalResults.classList.add('show');
+        }
+
+        function stopTimerGame() {
+            if (!isTimerRunning) return;
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            stopTimerBtn.disabled = true;
+            timerDisplay.classList.remove('active');
+            rollBtn.disabled = false;
+            startTimerBtn.disabled = false;
+            minutesInput.disabled = false;
+            showFinalResults();
+        }
+
+        function resetGame() {
+            sixCount = 0;
+            redSixCount = 0;
+            sixesCounter.textContent = '0';
+            redSixesCounter.textContent = '0';
+            info.textContent = '';
+            finalResults.classList.remove('show');
+            rollBtn.disabled = false;
+            startTimerBtn.disabled = false;
+            minutesInput.disabled = false;
+            timerDisplay.classList.remove('active');
+            timerDisplay.classList.remove('warning');
+        }
+
+        function rollBlueDie() {
+            blueDie.classList.remove('hidden');
+            redDie.classList.add('hidden');
+            blueDie.classList.add('rolling');
+            
+            setTimeout(() => {
+                currentBlueValue = normalDie[Math.floor(Math.random() * normalDie.length)];
+                blueDie.innerHTML = `<span class="die-label">Normal</span>${currentBlueValue}`;
+                blueDie.classList.remove('rolling');
+                info.textContent = `Blue die rolled: ${currentBlueValue}`;
+                info.classList.add('highlight');
+                
+                // Check for six
+                if (currentBlueValue === 6) {
+                    sixCount++;
+                    sixesCounter.textContent = sixCount;
+                    flipCounter(sixesCounter);
+                }
+            }, 500);
+        }
+
+        function rollRedDie() {
+            redDie.classList.remove('hidden');
+            blueDie.classList.add('hidden');
+            redDie.classList.add('rolling');
+            
+            setTimeout(() => {
+                currentRedValue = specialDie[Math.floor(Math.random() * specialDie.length)];
+                redDie.innerHTML = `<span class="die-label">Loaded</span>${currentRedValue}`;
+                redDie.classList.remove('rolling');
+                info.textContent = `Red die rolled: ${currentRedValue}`;
+                info.classList.add('highlight');
+                
+                // Check for red six
+                if (currentRedValue === 6) {
+                    sixCount++;
+                    sixesCounter.textContent = sixCount;
+                    flipCounter(sixesCounter);
+                    
+                    redSixCount++;
+                    redSixesCounter.textContent = redSixCount;
+                    flipCounter(redSixesCounter);
+                }
+            }, 500);
+        }
+
+        // Add click listener
+        rollBtn.addEventListener('click', rollDice);
+        startTimerBtn.addEventListener('click', startTimerGame);
+        stopTimerBtn.addEventListener('click', stopTimerGame);
+        resetGameBtn.addEventListener('click', resetGame);
+
+        // Optional: Allow spacebar to roll
+        document.addEventListener('keypress', (e) => {
+            if (e.code === 'Space' && !rollBtn.disabled && !isTimerRunning) {
+                e.preventDefault();
+                rollDice();
+            }
+        });
+    </script>
+</body>
+</html>
