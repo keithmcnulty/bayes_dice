@@ -24,7 +24,7 @@
         .container {
             text-align: center;
             background: white;
-            padding: 40px;
+            padding: 25px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 600px;
@@ -32,15 +32,15 @@
 
         h1 {
             color: #333;
-            margin-bottom: 40px;
-            font-size: 2.5em;
+            margin-bottom: 24px;
+            font-size: 2.2em;
         }
 
         .dice-container {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-bottom: 40px;
+            gap: 24px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
             perspective: 1200px;
         }
@@ -188,7 +188,7 @@
             justify-content: center;
             gap: 15px;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
         }
 
@@ -222,7 +222,7 @@
             color: #667eea;
             text-align: center;
             font-family: 'Courier New', monospace;
-            margin: 30px 0;
+            margin: 20px 0;
             letter-spacing: 8px;
             text-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
             animation: timerPulse 1s infinite;
@@ -252,10 +252,10 @@
             display: none;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 12px;
         }
 
         .final-results.show {
@@ -387,26 +387,15 @@
             }
         }
 
-        .info {
-            color: #666;
-            font-size: 16px;
-            margin-top: 20px;
-            min-height: 24px;
-        }
-
-        .info.highlight {
-            color: #667eea;
-            font-weight: bold;
-            font-size: 18px;
-        }
+        
 
         .die.hidden {
             display: none;
         }
 
         .counters-section {
-            margin-top: 50px;
-            padding-top: 30px;
+            margin-top: 30px;
+            padding-top: 20px;
             border-top: 2px solid #ddd;
         }
 
@@ -501,8 +490,6 @@
         </div>
 
         <button id="rollBtn">Roll Dice</button>
-        
-        <div class="info" id="info"></div>
 
         <div class="counters-section">
             <div class="counters">
@@ -556,7 +543,6 @@
         const blueDie = document.getElementById('blueDie');
         const redDie = document.getElementById('redDie');
         const rollBtn = document.getElementById('rollBtn');
-        const info = document.getElementById('info');
         const sixesCounter = document.getElementById('sixes');
         const redSixesCounter = document.getElementById('redSixes');
         const startTimerBtn = document.getElementById('startTimerBtn');
@@ -592,7 +578,6 @@
             if (isRolling) return;
             
             isRolling = true;
-            info.textContent = '';
             
             // Step 1: Show both dice
             blueDie.classList.remove('hidden');
@@ -644,7 +629,6 @@
             redSixCount = 0;
             sixesCounter.textContent = '0';
             redSixesCounter.textContent = '0';
-            info.textContent = '';
             finalResults.classList.remove('show');
 
             let timeRemaining = minutes * 60;
@@ -720,7 +704,6 @@
             redSixCount = 0;
             sixesCounter.textContent = '0';
             redSixesCounter.textContent = '0';
-            info.textContent = '';
             finalResults.classList.remove('show');
             rollBtn.disabled = false;
             startTimerBtn.disabled = false;
@@ -738,8 +721,6 @@
                 currentBlueValue = normalDie[Math.floor(Math.random() * normalDie.length)];
                 blueDie.innerHTML = `<span class="die-label">Normal</span>${currentBlueValue}`;
                 blueDie.classList.remove('rolling');
-                info.textContent = `Blue die rolled: ${currentBlueValue}`;
-                info.classList.add('highlight');
                 
                 // Check for six
                 if (currentBlueValue === 6) {
@@ -759,8 +740,6 @@
                 currentRedValue = specialDie[Math.floor(Math.random() * specialDie.length)];
                 redDie.innerHTML = `<span class="die-label">Loaded</span>${currentRedValue}`;
                 redDie.classList.remove('rolling');
-                info.textContent = `Red die rolled: ${currentRedValue}`;
-                info.classList.add('highlight');
                 
                 // Check for red six
                 if (currentRedValue === 6) {
